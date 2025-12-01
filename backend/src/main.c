@@ -421,6 +421,36 @@ int main() {
                 os << "]";
                 response_body = os.str();
             }
+            else if (method == "GET" && path == "/autocomplete/users") {
+                // Trie-based autocomplete for usernames only
+                auto q = parse_query(query);
+                string pref = q.count("prefix") ? q["prefix"] : "";
+                auto res = G.autocomplete_users(pref);
+                ostringstream os; os << "[";
+                for (size_t i = 0; i < res.size(); ++i) { if (i) os << ","; os << "\"" << json_escape(res[i]) << "\""; }
+                os << "]";
+                response_body = os.str();
+            }
+            else if (method == "GET" && path == "/autocomplete/posts") {
+                // Trie-based autocomplete for post content keywords
+                auto q = parse_query(query);
+                string pref = q.count("prefix") ? q["prefix"] : "";
+                auto res = G.autocomplete_posts(pref);
+                ostringstream os; os << "[";
+                for (size_t i = 0; i < res.size(); ++i) { if (i) os << ","; os << "\"" << json_escape(res[i]) << "\""; }
+                os << "]";
+                response_body = os.str();
+            }
+            else if (method == "GET" && path == "/search/aho") {
+                // Aho-Corasick based pattern search in posts
+                auto q = parse_query(query);
+                string pattern = q.count("pattern") ? q["pattern"] : "";
+                auto res = G.search_posts_aho(pattern);
+                ostringstream os; os << "[";
+                for (size_t i = 0; i < res.size(); ++i) { if (i) os << ","; os << res[i]; }
+                os << "]";
+                response_body = os.str();
+            }
             else {
                 status = "404 Not Found";
                 response_body = "{\"error\":\"not found\"}";

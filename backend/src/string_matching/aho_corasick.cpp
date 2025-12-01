@@ -1,5 +1,6 @@
 #include "aho_corasick.hpp"
 #include <queue>
+#include <unordered_set>
 
 using namespace std;
 
@@ -60,6 +61,7 @@ vector<string> AhoCorasick::search(const string &text) {
     if (patterns.empty()) return {};
     
     vector<string> matches;
+    unordered_set<string> seen;  // Avoid duplicate matches
     auto curr = root;
     
     for (char c : text) {
@@ -71,8 +73,16 @@ vector<string> AhoCorasick::search(const string &text) {
             curr = curr->children[c];
         }
         
-        if (curr->is_end) {
-            matches.push_back(curr->pattern);
+        // Collect all matches at this position (including via suffix links)
+        auto temp = curr;
+        while (temp != root) {
+            if (temp->is_end && !temp->pattern.empty()) {
+                if (seen.find(temp->pattern) == seen.end()) {
+                    matches.push_back(temp->pattern);
+                    seen.insert(temp->pattern);
+                }
+            }
+            temp = temp->fail;
         }
     }
     

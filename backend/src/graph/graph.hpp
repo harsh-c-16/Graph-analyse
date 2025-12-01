@@ -78,6 +78,9 @@ public:
     std::vector<int> community_members(int cid);
     std::vector<int> search_posts(const std::string &q);
     std::vector<std::string> autocomplete(const std::string &prefix);
+    std::vector<std::string> autocomplete_users(const std::string &prefix);
+    std::vector<std::string> autocomplete_posts(const std::string &prefix);
+    std::vector<int> search_posts_aho(const std::string &pattern);
 
 private:
     std::shared_mutex mutex_;

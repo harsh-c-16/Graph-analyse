@@ -286,7 +286,56 @@ vector<int> Graph::search_posts(const string &q) {
 vector<string> Graph::autocomplete(const string &prefix) {
     shared_lock lock(mutex_);
     // Use Trie data structure for efficient prefix-based autocomplete
+    // Returns both usernames and post keywords
+    vector<string> results;
+    
+    // Get username matches
+    auto user_matches = username_trie_.autocomplete(prefix, 5);
+    results.insert(results.end(), user_matches.begin(), user_matches.end());
+    
+    // Get post content keyword matches
+    auto post_matches = post_content_trie_.autocomplete(prefix, 5);
+    results.insert(results.end(), post_matches.begin(), post_matches.end());
+    
+    return results;
+}
+
+vector<string> Graph::autocomplete_users(const string &prefix) {
+    shared_lock lock(mutex_);
+    // Use Trie for username autocomplete only
     return username_trie_.autocomplete(prefix, 10);
+}
+
+vector<string> Graph::autocomplete_posts(const string &prefix) {
+    shared_lock lock(mutex_);
+    // Use Trie for post content keyword autocomplete
+    return post_content_trie_.autocomplete(prefix, 10);
+}
+
+vector<int> Graph::search_posts_aho(const string &pattern) {
+    shared_lock lock(mutex_);
+    // Use Aho-Corasick for efficient multi-pattern matching in posts
+    if (pattern.empty()) return {};
+    
+    AhoCorasick ac;
+    // Add the search pattern (can be extended to multiple patterns)
+    string low_pattern;
+    for (char c : pattern) low_pattern.push_back(tolower((unsigned char)c));
+    ac.add_pattern(low_pattern);
+    ac.build();
+    
+    vector<int> matching_posts;
+    for (auto &p : posts_) {
+        string low_content;
+        for (char c : p.second.content) low_content.push_back(tolower((unsigned char)c));
+        auto matches = ac.search(low_content);
+        if (!matches.empty()) {
+            matching_posts.push_back(p.second.id);
+        }
+    }
+    
+    sort(matching_posts.begin(), matching_posts.end());
+    return matching_posts;
 }
 
 void Graph::load_from_db(const string &path) {
