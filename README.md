@@ -249,10 +249,6 @@ lsof -i :8080       # Check what's using the port
 
 MIT License - see [LICENSE](LICENSE) file
 
-## 👨‍� Author
-
-**Harsh Chaudhari** - [GitHub](https://github.com/harsh-c-16)
-
 ## � Acknowledgments
 
 - Educational project demonstrating DSA concepts
