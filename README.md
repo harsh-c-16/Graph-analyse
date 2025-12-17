@@ -132,7 +132,7 @@ Backend server runs on **port 8080** with the following REST API:
 | GET | `/user/followers/<id>` | - | List followers |
 | GET | `/user/followings/<id>` | - | List followings |
 
-## �️ Tech Stack
+## Tech Stack
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
@@ -214,7 +214,7 @@ void unite(int a, int b) {
 score = 3 × followers + 2 × total_likes + 1 × followings + 0.5 × posts
 ```
 
-## � Performance Notes
+## Performance Notes
 
 - **In-memory operations**: O(1) lookups with hash maps
 - **BFS complexity**: O(V + E) where V = users, E = follows
@@ -249,7 +249,7 @@ lsof -i :8080       # Check what's using the port
 
 MIT License - see [LICENSE](LICENSE) file
 
-## � Acknowledgments
+## Acknowledgments
 
 - Educational project demonstrating DSA concepts
 - C++17 STL and modern React patterns
