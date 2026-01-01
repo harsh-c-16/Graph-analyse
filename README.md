@@ -13,7 +13,7 @@ A full-stack social network analysis platform demonstrating advanced graph algor
 - **Social Graph**: Follow/unfollow users, create posts, like content
 - **Shortest Path**: BFS algorithm to find connections between users
 - **Recommendations**: Jaccard similarity-based friend suggestions
-- **User Rankings**: Composite scoring (followers, likes, activity)
+- **User Rankings**: Bipartite PageRank over users and posts
 - **Community Detection**: DSU algorithm for social groups
 - **Content Moderation**: Multi-layer vulgar content detection
 - **Full-Text Search**: Inverted index with conjunctive queries
@@ -25,8 +25,13 @@ A full-stack social network analysis platform demonstrating advanced graph algor
 - **Jaccard Similarity**: Recommendation engine
 - **Disjoint Set Union (DSU)**: Community detection
 - **Inverted Index**: Fast text search
-- **Trie**: Autocomplete (stubbed)
-- **Aho-Corasick**: Pattern matching (stubbed)
+- **Weighted Interactions**: Like/view edges with 72-hour time decay
+- **Trending Posts**: Heap-backed Top-K ranking by post PageRank
+- **Unique View Estimation**: HyperLogLog-based approximate distinct viewers
+- **Trie**: Autocomplete
+- **Aho-Corasick**: Pattern matching
+- **HyperLogLog**: Probabilistic unique counting
+- **Min-Heap**: Efficient Top-K trending maintenance
 
 ## 🚀 Quick Start
 
@@ -53,6 +58,28 @@ npm install
 npm start             # Opens http://localhost:3000
 ```
 
+## Deployment
+
+### Backend on Render
+
+This repo includes `render.yaml` and `backend/Dockerfile`. Create a Render Blueprint from the repository, or create a Docker web service with:
+
+- Root/context: `backend`
+- Dockerfile: `backend/Dockerfile`
+- Health check path: `/health`
+
+The backend reads Render's `PORT` environment variable automatically and falls back to `8080` locally.
+
+### Frontend on Vercel
+
+Deploy the `frontend` directory as a Create React App project. Set this Vercel environment variable to your Render backend URL:
+
+```bash
+REACT_APP_API_BASE_URL=https://your-render-service.onrender.com
+```
+
+For local development, leave `REACT_APP_API_BASE_URL` blank and the CRA proxy in `frontend/package.json` will continue to route API calls to `http://localhost:8080`.
+
 **Linux/Mac One-Liner:**
 ```bash
 ./start.sh
@@ -67,11 +94,12 @@ DSA-Project/
 │   │   ├── main.cpp              # HTTP server & API routes
 │   │   ├── graph.hpp             # Graph class interface
 │   │   ├── graph_impl_final.cpp  # Main graph implementation
-│   │   ├── algorithms.cpp        # Stub algorithms
 │   │   ├── dsu.cpp/hpp           # Disjoint Set Union
-│   │   ├── trie.cpp/hpp          # Trie (stub)
-│   │   └── aho_corasick.cpp/hpp  # Aho-Corasick (stub)
-│   ├── Makefile                  # Build configuration
+│   │   ├── hll.cpp/hpp           # HyperLogLog unique counting
+│   │   ├── trie.cpp/hpp          # Trie autocomplete
+│   │   └── aho_corasick.cpp/hpp  # Aho-Corasick matching
+│   ├── CMakeLists.txt            # Primary build configuration
+│   ├── Makefile                  # Convenience wrapper around CMake
 │   ├── db/                       # Persistent storage
 │   └── graph_engine              # Compiled binary
 │
@@ -116,8 +144,11 @@ Backend server runs on **port 8080** with the following REST API:
 | POST | `/post/delete` | `post_id=<id>` | Delete post |
 | POST | `/interaction` | `type=follow&user_id=<id>&target_id=<id>` | Follow user |
 | POST | `/interaction` | `type=like&user_id=<id>&target_id=<post_id>` | Like post (requires follow) |
+| POST | `/interaction` | `type=view&user_id=<id>&target_id=<post_id>` | View post (updates HLL) |
 | GET | `/posts/all` | - | Get all posts |
-| GET | `/posts/top10` | - | Top 10 posts by likes |
+| GET | `/posts/top10` | - | Top 10 trending posts by post PageRank |
+| GET | `/post/metrics/<id>` | - | Post likes, unique views, score, decayed weight |
+| GET | `/post/unique-views/<id>` | - | Estimated unique viewers for a post |
 
 ### Analytics & Graph Operations
 | Method | Endpoint | Query | Description |
@@ -127,7 +158,7 @@ Backend server runs on **port 8080** with the following REST API:
 | GET | `/recommendations?u=<id>` | - | Friend suggestions (Jaccard) |
 | GET | `/communities` | - | Detect communities (DSU) |
 | GET | `/search?q=<keyword>` | - | Search posts (inverted index) |
-| GET | `/autocomplete/user?prefix=<text>` | - | Username autocomplete |
+| GET | `/autocomplete/users?prefix=<text>` | - | Username autocomplete |
 | GET | `/user/metrics/<id>` | - | User statistics |
 | GET | `/user/followers/<id>` | - | List followers |
 | GET | `/user/followings/<id>` | - | List followings |
@@ -209,10 +240,18 @@ void unite(int a, int b) {
 }
 ```
 
-### 4. **Composite Scoring (Rankings)**
+### 4. **Bipartite PageRank (Influence)**
 ```
-score = 3 × followers + 2 × total_likes + 1 × followings + 0.5 × posts
+users --weighted, time-decayed like/view edges--> posts
+posts --authorship edges--> users
 ```
+Each iteration pushes influence from users to posts, boosts posts by HyperLogLog-estimated unique viewers, then returns influence from posts to their authors until convergence.
+
+### 5. **Time Decay**
+```
+effective_weight = interaction_weight × 0.5^(age / 72 hours)
+```
+Recent interactions matter more than stale ones, and the Top-K heap tracks the strongest post scores after each analytics refresh.
 
 ## Performance Notes
 
