@@ -42,8 +42,13 @@ void Trie::dfs_collect(shared_ptr<TrieNode> node, vector<string> &results, int l
         if ((int)results.size() >= limit) return;
     }
     
-    for (auto &pair : node->children) {
-        dfs_collect(pair.second, results, limit);
+    vector<char> keys;
+    keys.reserve(node->children.size());
+    for (const auto &pair : node->children) keys.push_back(pair.first);
+    sort(keys.begin(), keys.end());
+
+    for (char key : keys) {
+        dfs_collect(node->children[key], results, limit);
         if ((int)results.size() >= limit) return;
     }
 }
