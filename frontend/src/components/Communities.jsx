@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 export default function Communities() {
   const [communities, setCommunities] = useState([]);
@@ -8,18 +9,19 @@ export default function Communities() {
 
   useEffect(() => {
     fetchCommunities();
+    const handleGraphUpdated = () => fetchCommunities();
+    window.addEventListener('graph-updated', handleGraphUpdated);
+    return () => window.removeEventListener('graph-updated', handleGraphUpdated);
   }, []);
 
   const fetchCommunities = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/communities');
-      if (!response.ok) throw new Error('Failed to fetch communities');
-      const data = await response.json();
-      setCommunities(data);
+      const r = await axios.get('/communities');
+      setCommunities(r.data || []);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError('Unable to load communities. Is the backend running?');
       console.error('Error fetching communities:', err);
     } finally {
       setLoading(false);

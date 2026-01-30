@@ -124,7 +124,7 @@ export default function GraphManager() {
               required
             />
             <input 
-              placeholder="Target User ID" 
+              placeholder={intType === 'follow' ? 'Target User ID' : 'Target Post ID'}
               value={intTarget} 
               onChange={e => setIntTarget(e.target.value)}
               disabled={running}
@@ -136,6 +136,7 @@ export default function GraphManager() {
               disabled={running}
             >
               <option value="like">❤️ Like</option>
+              <option value="view">👁️ View</option>
               <option value="follow">👥 Follow</option>
             </select>
             <button className="btn btn-success" type="submit" disabled={running || !intUser || !intTarget}>

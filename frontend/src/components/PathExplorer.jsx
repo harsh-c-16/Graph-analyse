@@ -16,11 +16,14 @@ export default function PathExplorer() {
   const [posterEdges, setPosterEdges] = React.useState([]);
   const [postsCount, setPostsCount] = React.useState({});
   const [loading, setLoading] = React.useState(false);
+  const [hasSearchedPath, setHasSearchedPath] = React.useState(false);
+  const [hasRequestedRecs, setHasRequestedRecs] = React.useState(false);
 
   const findPath = async (e) => {
     e.preventDefault();
     setError('');
     if (!u1.trim() || !u2.trim()) return;
+    setHasSearchedPath(true);
     setLoading(true);
     try {
       // resolve inputs: allow numeric IDs or usernames
@@ -49,24 +52,31 @@ export default function PathExplorer() {
   };
 
   const fetchGraph = async () => {
+    let fetchedUsers = [];
+    let fetchedPosts = [];
     try {
       const ru = await axios.get('/users-list?page=1&limit=1000');
-      setUsersList(ru.data || []);
-    } catch (err) { setUsersList([]); }
+      fetchedUsers = ru.data || [];
+      setUsersList(fetchedUsers);
+    } catch (err) {
+      setUsersList([]);
+    }
     try {
       const rp = await axios.get('/posts/all');
-      const allPosts = rp.data || [];
-      setPostsList(allPosts);
+      fetchedPosts = rp.data || [];
+      setPostsList(fetchedPosts);
       // build post counts per author
       const pc = {};
-      for (const p of allPosts) { pc[p.user_id] = (pc[p.user_id] || 0) + 1; }
+      for (const p of fetchedPosts) { pc[p.user_id] = (pc[p.user_id] || 0) + 1; }
       setPostsCount(pc);
-    } catch (err) { setPostsList([]); setPostsCount({}); }
+    } catch (err) {
+      setPostsList([]);
+      setPostsCount({});
+    }
 
     // fetch followings and liked posts to build edges
     try {
-      const ulist = (await axios.get('/users-list?page=1&limit=1000')).data || [];
-      const tasks = ulist.map(async (u) => {
+      const tasks = fetchedUsers.map(async (u) => {
         const uid = u.user_id;
         const followings = (await axios.get(`/user/followings/${uid}`)).data || [];
         const liked = (await axios.get(`/user/likedposts/${uid}`)).data || [];
@@ -75,9 +85,6 @@ export default function PathExplorer() {
       const results = await Promise.all(tasks);
       const fEdges = [];
       const lEdges = [];
-      // map posts to authors for liked->post mapping
-      const postAuthor = {};
-      for (const p of postsList) postAuthor[p.post_id] = p.user_id;
       for (const r of results) {
         for (const to of r.followings) fEdges.push({ from: r.uid, to });
         for (const pid of r.liked) {
@@ -88,10 +95,12 @@ export default function PathExplorer() {
       setLikeEdges(lEdges);
       // build poster edges
       const pEdges = [];
-      for (const p of postsList) pEdges.push({ from: p.user_id, to: p.post_id });
+      for (const p of fetchedPosts) pEdges.push({ from: p.user_id, to: p.post_id });
       setPosterEdges(pEdges);
     } catch (err) {
-      setFollowEdges([]); setLikeEdges([]);
+      setFollowEdges([]);
+      setLikeEdges([]);
+      setPosterEdges([]);
     }
   };
 
@@ -106,6 +115,8 @@ export default function PathExplorer() {
   const getRecs = async (e) => {
     e.preventDefault();
     if (!recUser.trim()) return;
+    setError('');
+    setHasRequestedRecs(true);
     setLoading(true);
     try {
       // resolve recUser to numeric id if a username was entered
@@ -216,7 +227,7 @@ export default function PathExplorer() {
           </div>
         )}
 
-        {!loading && u1 && u2 && path.length === 0 && (
+        {!loading && hasSearchedPath && !error && u1 && u2 && path.length === 0 && (
           <div className="mt-4 text-center text-slate-400">
             <p>❌ No connection found between these users</p>
           </div>
@@ -377,18 +388,18 @@ export default function PathExplorer() {
               >
                 <p className="text-slate-100 font-medium">👤 {user.username} <span className="text-xs text-slate-400">#{user.id}</span></p>
                 {/* visualize connection to recommended user */}
-                {vizPaths[user] && vizPaths[user].length > 0 ? (
+                {vizPaths[user.id] && vizPaths[user.id].length > 0 ? (
                   <div className="mt-3">
                     <p className="text-xs text-slate-400 mb-2">Connection path:</p>
                     <div className="overflow-auto">
-                      <svg width="100%" height="60" viewBox={`0 0 ${Math.max(240, vizPaths[user].length * 100)} 60`}>
-                        {vizPaths[user].map((n, i) => {
+                      <svg width="100%" height="60" viewBox={`0 0 ${Math.max(240, vizPaths[user.id].length * 100)} 60`}>
+                        {vizPaths[user.id].map((n, i) => {
                           const x = 40 + i * 100;
                           return (
                             <g key={i}>
-                              <rect x={x-28} y={10} width={56} height={36} rx={8} fill={i === 0 ? '#06b6d4' : i === vizPaths[user].length - 1 ? '#f97316' : '#6b7280'} />
+                              <rect x={x-28} y={10} width={56} height={36} rx={8} fill={i === 0 ? '#06b6d4' : i === vizPaths[user.id].length - 1 ? '#f97316' : '#6b7280'} />
                               <text x={x} y={34} fontSize="12" textAnchor="middle" fill="#fff">{n}</text>
-                              {i < vizPaths[user].length - 1 && (
+                              {i < vizPaths[user.id].length - 1 && (
                                 <line x1={x + 28} y1={28} x2={x + 100 - 28} y2={28} stroke="#94a3b8" strokeWidth="2" />
                               )}
                             </g>
@@ -405,7 +416,7 @@ export default function PathExplorer() {
           </div>
         )}
 
-        {!loading && recUser && recs.length === 0 && (
+        {!loading && hasRequestedRecs && !error && recUser && recs.length === 0 && (
           <div className="mt-4 text-center text-slate-400">
             <p>💭 No recommendations available at this time</p>
           </div>

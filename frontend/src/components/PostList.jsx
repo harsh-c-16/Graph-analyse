@@ -5,7 +5,12 @@ export default function PostList() {
   const [posts, setPosts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => { fetchPosts(); }, []);
+  React.useEffect(() => {
+    fetchPosts();
+    const handleGraphUpdated = () => fetchPosts();
+    window.addEventListener('graph-updated', handleGraphUpdated);
+    return () => window.removeEventListener('graph-updated', handleGraphUpdated);
+  }, []);
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -36,6 +41,9 @@ export default function PostList() {
               <tr>
                 <th>🆔 Post ID</th>
                 <th>👤 Author ID</th>
+                <th>❤️ Likes</th>
+                <th>👁️ Views</th>
+                <th>⭐ Score</th>
                 <th>✏️ Content</th>
                 <th className="text-right">⚙️</th>
               </tr>
@@ -45,6 +53,9 @@ export default function PostList() {
                 <tr key={p.post_id} className="hover:bg-blue-500/5 transition-colors">
                   <td><span className="badge badge-success">{p.post_id}</span></td>
                   <td><span className="badge badge-ghost">{p.user_id}</span></td>
+                  <td>{p.likes ?? 0}</td>
+                  <td>{p.unique_views ?? 0}</td>
+                  <td>{Number(p.score ?? 0).toFixed(6)}</td>
                   <td className="font-medium text-slate-100 max-w-[40ch] truncate">{p.content}</td>
                   <td className="text-right">
                     <button
