@@ -5,7 +5,12 @@ export default function UserList() {
   const [users, setUsers] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => { fetchUsers(); }, []);
+  React.useEffect(() => {
+    fetchUsers();
+    const handleGraphUpdated = () => fetchUsers();
+    window.addEventListener('graph-updated', handleGraphUpdated);
+    return () => window.removeEventListener('graph-updated', handleGraphUpdated);
+  }, []);
 
   const fetchUsers = async () => {
     setLoading(true);

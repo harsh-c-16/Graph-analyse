@@ -5,8 +5,7 @@ export default function TopPosts() {
   const [posts, setPosts] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    (async () => {
+  const fetchPosts = React.useCallback(async () => {
       setLoading(true);
       try {
         const r = await axios.get('/posts/top10');
@@ -15,8 +14,14 @@ export default function TopPosts() {
         setPosts([]);
       }
       setLoading(false);
-    })();
   }, []);
+
+  React.useEffect(() => {
+    fetchPosts();
+    const handleGraphUpdated = () => fetchPosts();
+    window.addEventListener('graph-updated', handleGraphUpdated);
+    return () => window.removeEventListener('graph-updated', handleGraphUpdated);
+  }, [fetchPosts]);
 
   return (
     <div className="card">
@@ -40,11 +45,13 @@ export default function TopPosts() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="badge badge-success">❤️ {p.likes}</span>
+                  <span className="badge">👁️ {p.unique_views ?? 0}</span>
                 </div>
               </div>
               <p className="text-slate-100 mb-2">{p.content}</p>
               <p className="text-xs text-slate-400">
                 by <span className="text-blue-300 font-medium">@{p.user_id}</span>
+                <span className="ml-3">score {Number(p.score ?? 0).toFixed(6)}</span>
               </p>
             </div>
           ))}

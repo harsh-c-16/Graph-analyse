@@ -15,7 +15,12 @@ export default function UserRanking() {
     setLoading(false);
   };
 
-  React.useEffect(() => { fetch(page); }, [page]);
+  React.useEffect(() => {
+    fetch(page);
+    const handleGraphUpdated = () => fetch(page);
+    window.addEventListener('graph-updated', handleGraphUpdated);
+    return () => window.removeEventListener('graph-updated', handleGraphUpdated);
+  }, [page]);
 
   return (
     <div className="card">
@@ -43,7 +48,7 @@ export default function UserRanking() {
               {users.map((u, idx) => (
                 <tr key={u.user_id} className="hover:bg-purple-500/5 transition-colors">
                   <td className="font-bold text-lg">
-                    {page === 1 && idx === 0 ? '🥇' : page === 1 && idx === 1 ? '🥈' : page === 1 && idx === 2 ? '🥉' : idx + 1}
+                    {page === 1 && idx === 0 ? '🥇' : page === 1 && idx === 1 ? '🥈' : page === 1 && idx === 2 ? '🥉' : (page - 1) * 10 + idx + 1}
                   </td>
                   <td>
                     <span className="font-medium text-slate-100">{u.username}</span>

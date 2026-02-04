@@ -7,11 +7,13 @@ export default function SearchBar() {
   const [prefix, setPrefix] = React.useState('');
   const [ac, setAc] = React.useState([]);
   const [searching, setSearching] = React.useState(false);
+  const [hasSearched, setHasSearched] = React.useState(false);
 
   const doSearch = async (e) => {
     e.preventDefault();
     if (!q.trim()) return;
     setSearching(true);
+    setHasSearched(true);
     try {
       const r = await axios.get(`/search?q=${encodeURIComponent(q)}`);
       setRes(r.data || []);
@@ -28,7 +30,7 @@ export default function SearchBar() {
       return;
     }
     try {
-      const r = await axios.get(`/autocomplete/user?prefix=${encodeURIComponent(val)}`);
+      const r = await axios.get(`/autocomplete/users?prefix=${encodeURIComponent(val)}`);
       setAc(r.data || []);
     } catch (e) {
       setAc([]);
@@ -55,18 +57,21 @@ export default function SearchBar() {
         {res.length > 0 && (
           <div className="mt-4 space-y-2">
             <p className="text-sm text-slate-400">Found {res.length} result{res.length !== 1 ? 's' : ''}:</p>
-            {res.map((r, idx) => (
+            {res.map((post) => (
               <div
-                key={idx}
+                key={post.post_id}
                 className="bg-slate-800/40 border border-slate-700/50 rounded-lg p-3 hover:border-blue-500/50 transition-all"
               >
-                <p className="text-slate-100">{r}</p>
+                <p className="text-slate-100">{post.content}</p>
+                <p className="text-xs text-slate-400 mt-1">
+                  Post #{post.post_id} by user #{post.user_id}
+                </p>
               </div>
             ))}
           </div>
         )}
 
-        {!searching && q && res.length === 0 && (
+        {!searching && hasSearched && q && res.length === 0 && (
           <div className="mt-4 text-center text-slate-400">
             <p>No posts found matching "{q}"</p>
           </div>
