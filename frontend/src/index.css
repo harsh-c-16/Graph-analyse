@@ -1,12 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Modern Dark Theme */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #e2e8f0;
+  background: #0c1324;
+  color: #dce1fb;
 }
 
 /* Cards & Containers */
@@ -189,11 +193,18 @@ input::placeholder {
   display: flex; align-items: center; gap: 8px;
 }
 
+.grid-bg {
+  background-image:
+    linear-gradient(to right, #2e3447 1px, transparent 1px),
+    linear-gradient(to bottom, #2e3447 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* Scrollbar */
-::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #070d1f; }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  background: #2e3447;
   border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #60a5fa, #a78bfa); }
+::-webkit-scrollbar-thumb:hover { background: #958ea0; }

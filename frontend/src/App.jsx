@@ -5,44 +5,43 @@ import AnalyticsPage from './pages/AnalyticsPage';
 export default function App() {
   const [route, setRoute] = React.useState('management');
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900/80 backdrop-blur-xl shadow-2xl">
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="sticky top-0 z-50 border-b border-outline-variant bg-surface/80 backdrop-blur-xl shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">📊</span>
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">GraphAnalyse</h1>
+              <h1 className="text-xl font-bold font-headline-md text-primary">
+                GraphAnalyse
+              </h1>
             </div>
-            
+
             <nav className="flex gap-2">
               <button
                 onClick={() => setRoute('management')}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`px-5 py-1.5 rounded font-label-mono text-label-mono transition-all duration-200 ${
                   route === 'management'
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                    ? 'bg-primary/10 text-primary border border-primary/30'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
-                📝 Management
+                Management
               </button>
               <button
                 onClick={() => setRoute('analytics')}
-                className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
+                className={`px-5 py-1.5 rounded font-label-mono text-label-mono transition-all duration-200 ${
                   route === 'analytics'
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/50'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                    ? 'bg-secondary/10 text-secondary border border-secondary/30'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
                 }`}
               >
-                📈 Analytics
+                Analytics
               </button>
             </nav>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1">
         {route === 'management' ? <ManagementPage /> : <AnalyticsPage />}
       </main>
     </div>
